@@ -31,7 +31,7 @@ app
   .use(passport.initialize())
   .use(passport.session());
 
-mongoose.connect("mongodb://localhost:27017/usersDB", {
+mongoose.connect(process.env.MONGODB_SRV, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
