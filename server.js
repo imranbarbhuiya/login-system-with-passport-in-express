@@ -74,6 +74,7 @@ passport.use(
       User.findOrCreate(
         {
           googleId: profile.id,
+          name: profile.displayName,
         },
         function (err, user) {
           return cb(err, user);
