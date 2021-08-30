@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
-
+const port = process.env.PORT || 8080;
 const User = new mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy());
@@ -186,6 +186,6 @@ app
       }
     });
   })
-  .listen(3000, () => {
-    console.log("Server started");
+  .listen(port, () => {
+    console.log(`Server started at port ${port}`);
   });
