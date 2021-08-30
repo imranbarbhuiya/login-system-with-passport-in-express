@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+
+<div class="jumbotron centered">
+  <div class="container">
+    <h1 class="display-3">
+      <i class="fas fa-quote-left"></i>Here are all the quotes<i
+        class="fas fa-quote-right"
+      ></i>
+    </h1>
+
+    <ul class="list">
+      <% usersWithQuotes.forEach(function(user){
+      user.quote.forEach(function(quote){ %>
+      <li class="quote-text">"<%= quote %>" - <%= user.name%></li>
+      <% })}) %>
+    </ul>
+    <hr />
+
+    <a class="btn btn-light btn-lg me-5" href="/logout" role="button"
+      >Log Out</a
+    >
+    <a class="btn btn-success btn-lg ms-5" href="/submit" role="button"
+      >Submit a Quote</a
+    >
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,19 @@
+body {
+  background-color: #e8ecef;
+}
+
+.centered {
+  padding-top: 100px;
+  text-align: center;
+}
+.list {
+  background-color: #eff169;
+  width: 500px;
+  margin-left: 450px;
+}
+.quote-text {
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  border-bottom: 1px solid #000000;
+}
