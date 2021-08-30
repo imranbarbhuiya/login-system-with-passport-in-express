@@ -83,9 +83,6 @@ passport.use(
 );
 
 app
-  .get("/", function (req, res) {
-    res.render("home");
-  })
   .get(
     "/auth/google",
     passport.authenticate("google", {
@@ -99,7 +96,7 @@ app
       failureRedirect: "/login",
     }),
     function (req, res) {
-      res.redirect("/quotes");
+      res.redirect("/");
     }
   )
 
@@ -110,13 +107,16 @@ app
     res.render("register");
   })
 
-  .get("/quotes", function (req, res) {
+  .get("/", function (req, res) {
     User.find({ quote: { $ne: null } }, function (err, users) {
       if (err) {
         console.log(err);
       } else {
         if (users) {
-          res.render("quotes", { usersWithQuotes: users });
+          res.render("quotes", {
+            usersWithQuotes: users,
+            login: req.isAuthenticated(),
+          });
         }
       }
     });
@@ -148,7 +148,7 @@ app
           res.redirect("/register");
         } else {
           passport.authenticate("local")(req, res, function () {
-            res.redirect("/quotes");
+            res.redirect("/");
           });
         }
       }
@@ -165,7 +165,7 @@ app
         res.redirect("/login");
       } else {
         passport.authenticate("local")(req, res, function () {
-          res.redirect("/quotes");
+          res.redirect("/");
         });
       }
     });
@@ -180,7 +180,7 @@ app
         if (user) {
           user.quote.push(quote);
           user.save(function () {
-            res.redirect("/quotes");
+            res.redirect("/");
           });
         }
       }

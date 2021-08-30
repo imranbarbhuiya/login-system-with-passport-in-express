@@ -15,13 +15,19 @@
       <% })}) %>
     </ul>
     <hr />
-
-    <a class="btn btn-light btn-lg me-5" href="/logout" role="button"
+    <% if(login){%>
+    <a class="btn btn-warning btn-lg me-5" href="/logout" role="button"
       >Log Out</a
     >
     <a class="btn btn-success btn-lg ms-5" href="/submit" role="button"
       >Submit a Quote</a
     >
+    <%}else{%>
+    <a class="btn btn-warning btn-lg me-5" href="/register" role="button"
+      >Register</a
+    >
+    <a class="btn btn-success btn-lg ms-5" href="/login" role="button">Login</a>
+    <%}%>
   </div>
 </div>
 
