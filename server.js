@@ -22,9 +22,10 @@ app
 
   .use(
     session({
-      secret: "Its a quote.",
+      secret: "my secret code #4451122@%",
       resave: false,
       saveUninitialized: false,
+      cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
     })
   )
 
