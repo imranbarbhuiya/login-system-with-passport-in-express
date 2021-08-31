@@ -6,9 +6,10 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
-const passportLocalMongoose = require("passport-local-mongoose");
+// const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const findOrCreate = require("mongoose-findorcreate");
+// const findOrCreate = require("mongoose-findorcreate");
+const User = require("./model/userSchema");
 const { ensureLoggedIn } = require("connect-ensure-login");
 const flash = require("connect-flash");
 const app = express();
@@ -40,18 +41,7 @@ mongoose.connect(process.env.MONGODB_SRV, {
   useUnifiedTopology: true,
 });
 
-const userSchema = new mongoose.Schema({
-  username: String,
-  name: String,
-  password: String,
-  googleId: String,
-  quote: Array,
-});
-
-userSchema.plugin(passportLocalMongoose);
-userSchema.plugin(findOrCreate);
 const port = process.env.PORT || 8080;
-const User = new mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy());
 
