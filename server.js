@@ -71,7 +71,6 @@ passport.use(
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
-      console.log(profile);
       User.findOrCreate(
         {
           googleId: profile.id,
@@ -97,11 +96,9 @@ app
   .get(
     "/auth/google/quote",
     passport.authenticate("google", {
+      successReturnToOrRedirect: "/",
       failureRedirect: "/login",
-    }),
-    function (req, res) {
-      res.redirect("/");
-    }
+    })
   )
 
   .get("/login", function (req, res) {
@@ -126,7 +123,7 @@ app
     });
   })
 
-  .get("/submit", ensureLoggedIn("/login"), function (req, res) {
+  .get("/submit", ensureLoggedIn("/register"), function (req, res) {
     res.render("submit");
   })
 
@@ -148,7 +145,7 @@ app
           res.redirect("/register");
         } else {
           passport.authenticate("local")(req, res, function () {
-            res.redirect("/");
+            res.redirect(req.session.returnTo || "/");
           });
         }
       }
@@ -159,11 +156,7 @@ app
     passport.authenticate("local", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/login",
-    }),
-    function (req, res) {
-      console.log(err);
-      res.redirect("/login");
-    }
+    })
   )
   .post("/submit", function (req, res) {
     const quote = req.body.quote;
