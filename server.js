@@ -4,11 +4,13 @@ const express = require("express");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
 const { ensureLoggedIn } = require("connect-ensure-login");
+const flash = require("connect-flash");
 const app = express();
 
 app
@@ -19,7 +21,7 @@ app
       extended: true,
     })
   )
-
+  .use(cookieParser())
   .use(
     session({
       secret: "my secret code #4451122@%",
@@ -28,6 +30,7 @@ app
       cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
     })
   )
+  .use(flash())
 
   .use(passport.initialize())
   .use(passport.session());
@@ -98,13 +101,16 @@ app
     passport.authenticate("google", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/login",
+      failureFlash: true,
     })
   )
 
   .get("/login", function (req, res) {
+    res.locals.message = req.flash();
     res.render("login");
   })
   .get("/register", function (req, res) {
+    res.locals.message = req.flash();
     res.render("register");
   })
 
@@ -142,6 +148,7 @@ app
       function (err, user) {
         if (err) {
           console.log(err);
+          req.flash("error", err.message);
           res.redirect("/register");
         } else {
           passport.authenticate("local")(req, res, function () {
@@ -156,6 +163,7 @@ app
     passport.authenticate("local", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/login",
+      failureFlash: true,
     })
   )
   .post("/submit", function (req, res) {
