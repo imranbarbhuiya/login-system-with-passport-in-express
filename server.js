@@ -8,7 +8,7 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
-
+const { ensureLoggedIn } = require("connect-ensure-login");
 const app = express();
 
 app
@@ -71,10 +71,12 @@ passport.use(
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
+      console.log(profile);
       User.findOrCreate(
         {
           googleId: profile.id,
-          name: profile.displayName,
+          name: profile._json.given_name,
+          username: profile._json.email,
         },
         function (err, user) {
           return cb(err, user);
@@ -88,7 +90,7 @@ app
   .get(
     "/auth/google",
     passport.authenticate("google", {
-      scope: ["profile"],
+      scope: ["email", "profile"],
     })
   )
 
@@ -124,12 +126,8 @@ app
     });
   })
 
-  .get("/submit", function (req, res) {
-    if (req.isAuthenticated()) {
-      res.render("submit");
-    } else {
-      res.redirect("/login");
-    }
+  .get("/submit", ensureLoggedIn("/login"), function (req, res) {
+    res.render("submit");
   })
 
   .get("/logout", function (req, res) {
@@ -156,22 +154,17 @@ app
       }
     );
   })
-  .post("/login", function (req, res) {
-    const user = new User({
-      username: req.body.username,
-      password: req.body.password,
-    });
-    req.login(user, function (err) {
-      if (err) {
-        console.log(err);
-        res.redirect("/login");
-      } else {
-        passport.authenticate("local")(req, res, function () {
-          res.redirect("/");
-        });
-      }
-    });
-  })
+  .post(
+    "/login",
+    passport.authenticate("local", {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/login",
+    }),
+    function (req, res) {
+      console.log(err);
+      res.redirect("/login");
+    }
+  )
   .post("/submit", function (req, res) {
     const quote = req.body.quote;
 
