@@ -129,7 +129,7 @@ app
     });
   })
 
-  .get("/submit", ensureLoggedIn("/register"), function (req, res) {
+  .get("/submit", ensureLoggedIn("/login"), function (req, res) {
     res.render("submit");
   })
 
