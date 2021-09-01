@@ -1,17 +1,16 @@
 //jshint esversion:6
 require("dotenv").config();
 const express = require("express");
-const ejs = require("ejs");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
-// const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-// const findOrCreate = require("mongoose-findorcreate");
-const User = require("./model/userSchema");
 const { ensureLoggedIn } = require("connect-ensure-login");
 const flash = require("connect-flash");
+
+const User = require("./model/userSchema");
+
 const app = express();
 
 app
@@ -77,33 +76,9 @@ passport.use(
     }
   )
 );
-
+const loginRoute = require("./routes/login");
+app.use("/", loginRoute);
 app
-  .get(
-    "/auth/google",
-    passport.authenticate("google", {
-      scope: ["email", "profile"],
-    })
-  )
-
-  .get(
-    "/auth/google/quote",
-    passport.authenticate("google", {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/login",
-      failureFlash: true,
-    })
-  )
-
-  .get("/login", function (req, res) {
-    res.locals.message = req.flash();
-    res.render("login");
-  })
-  .get("/register", function (req, res) {
-    res.locals.message = req.flash();
-    res.render("register");
-  })
-
   .get("/", function (req, res) {
     User.find({ quote: { $ne: null } }, function (err, users) {
       if (err) {
@@ -123,38 +98,6 @@ app
     res.render("submit");
   })
 
-  .get("/logout", function (req, res) {
-    req.logout();
-    res.redirect("/");
-  })
-
-  .post("/register", function (req, res) {
-    User.register(
-      {
-        username: req.body.username,
-        name: req.body.name,
-      },
-      req.body.password,
-      function (err, user) {
-        if (err) {
-          req.flash("error", err.message);
-          res.redirect("/register");
-        } else {
-          passport.authenticate("local")(req, res, function () {
-            res.redirect(req.session.returnTo || "/");
-          });
-        }
-      }
-    );
-  })
-  .post(
-    "/login",
-    passport.authenticate("local", {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/login",
-      failureFlash: true,
-    })
-  )
   .post("/submit", function (req, res) {
     const quote = req.body.quote;
 
