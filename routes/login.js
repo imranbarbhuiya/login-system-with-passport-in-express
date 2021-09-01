@@ -14,12 +14,24 @@ route
   )
 
   .get(
-    "/auth/google/quote",
+    "/auth/google/login",
     passport.authenticate("google", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/login",
       failureFlash: true,
     })
+  )
+  .get("/auth/github", passport.authenticate("github", { scope: ["user"] }))
+  .get(
+    "/auth/github/login",
+    passport.authenticate("github", {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/login",
+      failureFlash: true,
+    }),
+    function (req, res) {
+      res.redirect("/");
+    }
   )
   .get("/login", function (req, res) {
     res.locals.message = req.flash();
