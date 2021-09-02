@@ -1,5 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const User = require("../model/userSchema");
 const axios = require("axios").default;
 module.exports = (passport) => {
@@ -11,15 +12,31 @@ module.exports = (passport) => {
         callbackURL: `/auth/google/login`,
         userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
       },
-      async function (accessToken, refreshToken, profile, cb) {
-        await User.findOrCreate(
+      function (accessToken, refreshToken, profile, cb) {
+        User.findOne(
           {
-            googleId: profile.id,
-            name: profile._json.given_name,
             username: profile._json.email,
           },
           function (err, user) {
-            return cb(err, user);
+            if (err) {
+              return cb(err);
+            }
+            if (user) {
+              return cb(err, user);
+            } else {
+              user = new User({
+                googleId: profile.id,
+                name: profile._json.given_name,
+                username: profile._json.email,
+              });
+              user.save(function (err, user) {
+                if (err) {
+                  console.log(err);
+                  return cb(err);
+                }
+                return cb(err, user);
+              });
+            }
           }
         );
       }
@@ -41,21 +58,73 @@ module.exports = (passport) => {
           .catch((err) => {
             console.log(err);
           })
-          .then(async (data) => {
+          .then((data) => {
             primaryEmail = data.data.filter((email) => email.primary == true)[0]
               .email;
-
-            await User.findOrCreate(
+            User.findOne(
               {
-                githubId: profile.id,
-                name: profile.displayName,
                 username: primaryEmail,
               },
               function (err, user) {
-                return done(err, user);
+                if (err) {
+                  return done(err);
+                }
+                if (user) {
+                  return done(err, user);
+                } else {
+                  user = new User({
+                    githubId: profile.id,
+                    name: profile.displayName,
+                    username: primaryEmail,
+                  });
+                  user.save(function (err, user) {
+                    if (err) {
+                      console.log(err);
+                      return done(err);
+                    }
+                    return done(err, user);
+                  });
+                }
               }
             );
           });
+      }
+    )
+  );
+  passport.use(
+    new FacebookStrategy(
+      {
+        clientID: process.env.FACEBOOK_APP_ID,
+        clientSecret: process.env.FACEBOOK_APP_SECRET,
+        callbackURL: "/auth/facebook/login",
+      },
+      function (accessToken, refreshToken, profile, cb) {
+        User.findOne(
+          {
+            username: profile._json.email,
+          },
+          function (err, user) {
+            if (err) {
+              return cb(err);
+            }
+            if (user) {
+              return cb(err, user);
+            } else {
+              user = new User({
+                facebookId: profile.id,
+                name: profile.displayName,
+                username: profile.email,
+              });
+              user.save(function (err, user) {
+                if (err) {
+                  console.log(err);
+                  return cb(err);
+                }
+                return cb(err, user);
+              });
+            }
+          }
+        );
       }
     )
   );

@@ -1,7 +1,10 @@
-const { ensureLoggedIn } = require("connect-ensure-login");
+const { ensureLoggedIn, ensureLoggedOut } = require("connect-ensure-login");
 const express = require("express");
 const passport = require("passport");
+const crypto = require("crypto");
+
 const User = require("../model/userSchema");
+const mail = require("../module/mail");
 
 const route = express.Router();
 
@@ -33,30 +36,33 @@ route
       res.redirect("/");
     }
   )
+  .get("/auth/facebook", passport.authenticate("facebook"))
+  .get(
+    "/auth/facebook/login",
+    passport.authenticate("facebook", {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/login",
+      failureFlash: true,
+    }),
+    function (req, res) {
+      res.redirect("/");
+    }
+  )
   .get("/login", function (req, res) {
     res.locals.message = req.flash();
     res.render("login");
   })
+  .post(
+    "/login",
+    passport.authenticate("local", {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/login",
+      failureFlash: true,
+    })
+  )
   .get("/register", function (req, res) {
     res.locals.message = req.flash();
     res.render("register");
-  })
-  .get("/change", ensureLoggedIn("/login"), function (req, res) {
-    res.render("change");
-  })
-  .get("/reset", function (req, res) {
-    res.redirect("/login");
-  })
-  .get("/reset/:token", function (req, res) {
-    if (!req.params.token) {
-      res.sendStatus(401);
-    } else {
-      res.render("reset", { token: req.params.token });
-    }
-  })
-  .get("/logout", function (req, res) {
-    req.logout();
-    res.redirect("/");
   })
   .post("/register", function (req, res) {
     User.register(
@@ -77,26 +83,8 @@ route
       }
     );
   })
-  .post(
-    "/login",
-    passport.authenticate("local", {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/login",
-      failureFlash: true,
-    })
-  )
-  .post("/reset", function (req, res) {
-    User.findOne({ token: req.params.token }, function (err, sanitizedUser) {
-      if (sanitizedUser) {
-        sanitizedUser.setPassword(req.body.password, function () {
-          sanitizedUser.save();
-        });
-        res.locals.message = req.flash("success", "Password reset successful");
-      } else {
-        res.locals.message = req.flash("error", "Invalid token");
-      }
-      res.redirect("/login");
-    });
+  .get("/change", ensureLoggedIn("/login"), function (req, res) {
+    res.render("change");
   })
   .post("change", function (req, res) {
     User.findOne(
@@ -110,9 +98,69 @@ route
               sanitizedUser.save();
             }
           );
+          res.redirect("/");
         }
       }
     );
+  })
+  .get("/reset", function (req, res) {
+    res.render("forgot");
+  })
+  .post("/reset", async function (req, res) {
+    resetPasswordToken = crypto.randomBytes(20).toString("hex");
+    resetPasswordExpire = Date.now() + 60 * 60 * 1000;
+    const mailTo = req.body.username;
+    const user = await User.findOneAndUpdate(
+      { username: mailTo },
+      {
+        resetPasswordToken: resetPasswordToken,
+        resetPasswordExpire: resetPasswordExpire,
+      }
+    );
+    if (!user) {
+      res.redirect("/login");
+    } else {
+      res.send("Check email to proceed");
+      mail(
+        null,
+        mailTo,
+        "Reset Password",
+        `<p>Reset Password</p><a href="http://localhost:8080/reset/${resetPasswordToken}">Click here</a>`
+      );
+    }
+  })
+  .get("/reset/:token", ensureLoggedOut("/"), function (req, res) {
+    res.render("reset");
+  })
+  .post("/reset/:token", function (req, res) {
+    User.findOne(
+      { resetPasswordToken: req.params.token },
+      function (err, sanitizedUser) {
+        if (sanitizedUser) {
+          const now = Date.now();
+          if (sanitizedUser.resetPasswordExpire - now > 0) {
+            sanitizedUser.setPassword(req.body.password, function () {
+              sanitizedUser.save();
+            });
+          }
+          User.updateOne(
+            { resetPasswordToken: req.params.token },
+            { $unset: { resetPasswordExpire: 1, resetPasswordToken: 1 } },
+            function (err, user) {
+              if (err) console.log(err);
+            }
+          );
+          req.flash("success", "Password reset successful");
+        } else {
+          req.flash("error", "Invalid token");
+        }
+        res.redirect("/login");
+      }
+    );
+  })
+  .get("/logout", function (req, res) {
+    req.logout();
+    res.redirect("/");
   });
 
 module.exports = route;
