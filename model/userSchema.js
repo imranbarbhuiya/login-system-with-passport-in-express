@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   password: String,
   googleId: String,
   githubId: String,
+  instagramId: String,
   quote: Array,
   resetPasswordToken: String,
   resetPasswordExpire: String,

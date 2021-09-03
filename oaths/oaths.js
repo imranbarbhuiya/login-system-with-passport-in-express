@@ -1,6 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2").Strategy;
-const FacebookStrategy = require("passport-facebook").Strategy;
+const InstagramStrategy = require("passport-instagram").Strategy;
 const User = require("../model/userSchema");
 const axios = require("axios").default;
 module.exports = (passport) => {
@@ -92,16 +92,16 @@ module.exports = (passport) => {
     )
   );
   passport.use(
-    new FacebookStrategy(
+    new InstagramStrategy(
       {
-        clientID: process.env.FACEBOOK_APP_ID,
-        clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: "/auth/facebook/login",
+        clientID: process.env.INSTAGRAM_APP_ID,
+        clientSecret: process.env.INSTAGRAM_APP_SECRET,
+        callbackURL: "/auth/instagram/login",
       },
       function (accessToken, refreshToken, profile, cb) {
         User.findOne(
           {
-            username: profile._json.email,
+            username: profile.email,
           },
           function (err, user) {
             if (err) {
@@ -111,7 +111,7 @@ module.exports = (passport) => {
               return cb(err, user);
             } else {
               user = new User({
-                facebookId: profile.id,
+                instagramId: profile.id,
                 name: profile.displayName,
                 username: profile.email,
               });

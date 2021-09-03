@@ -36,10 +36,10 @@ route
       res.redirect("/");
     }
   )
-  .get("/auth/facebook", passport.authenticate("facebook"))
+  .get("/auth/instagram", passport.authenticate("instagram"))
   .get(
-    "/auth/facebook/login",
-    passport.authenticate("facebook", {
+    "/auth/instagram/login",
+    passport.authenticate("instagram", {
       successReturnToOrRedirect: "/",
       failureRedirect: "/login",
       failureFlash: true,
