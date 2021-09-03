@@ -1,6 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2").Strategy;
-const InstagramStrategy = require("passport-instagram").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const User = require("../model/userSchema");
 const axios = require("axios").default;
 module.exports = (passport) => {
@@ -92,13 +92,14 @@ module.exports = (passport) => {
     )
   );
   passport.use(
-    new InstagramStrategy(
+    new FacebookStrategy(
       {
-        clientID: process.env.INSTAGRAM_APP_ID,
-        clientSecret: process.env.INSTAGRAM_APP_SECRET,
-        callbackURL: "https://psycotic.herokuapp.com/auth/instagram/login",
+        clientID: process.env.FACEBOOK_APP_ID,
+        clientSecret: process.env.FACEBOOK_APP_SECRET,
+        callbackURL: "/auth/facebook/login",
       },
       function (accessToken, refreshToken, profile, cb) {
+        console.log(profile);
         User.findOne(
           {
             username: profile.email,
@@ -111,7 +112,7 @@ module.exports = (passport) => {
               return cb(err, user);
             } else {
               user = new User({
-                instagramId: profile.id,
+                facebookId: profile.id,
                 name: profile.displayName,
                 username: profile.email,
               });
