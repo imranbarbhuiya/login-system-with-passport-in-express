@@ -96,7 +96,7 @@ module.exports = (passport) => {
       {
         clientID: process.env.INSTAGRAM_APP_ID,
         clientSecret: process.env.INSTAGRAM_APP_SECRET,
-        callbackURL: "/auth/instagram/login",
+        callbackURL: "https://psycotic.herokuapp.com/auth/instagram/login",
       },
       function (accessToken, refreshToken, profile, cb) {
         User.findOne(
