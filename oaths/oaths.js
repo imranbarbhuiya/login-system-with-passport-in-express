@@ -61,6 +61,9 @@ module.exports = (passport) => {
           .then((data) => {
             primaryEmail = data.data.filter((email) => email.primary == true)[0]
               .email;
+            if (!primaryEmail) {
+              return done();
+            }
             User.findOne(
               {
                 username: primaryEmail,
@@ -97,12 +100,16 @@ module.exports = (passport) => {
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
         callbackURL: "/auth/facebook/login",
+        enableProof: true,
+        profileFields: ["id", "emails", "displayName"],
       },
       function (accessToken, refreshToken, profile, cb) {
-        console.log(profile);
+        if (!profile.emails[0].value) {
+          return cb();
+        }
         User.findOne(
           {
-            username: profile.email,
+            username: profile.emails[0].value,
           },
           function (err, user) {
             if (err) {
@@ -114,7 +121,7 @@ module.exports = (passport) => {
               user = new User({
                 facebookId: profile.id,
                 name: profile.displayName,
-                username: profile.email,
+                username: profile.emails[0].value,
               });
               user.save(function (err, user) {
                 if (err) {
