@@ -19,7 +19,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.2",
     "lodash": "^4.17.21",
-    "mongoose": "^6.0.2",
+    "mongoose": "^7.0.2",
     "nodemailer": "^6.6.3",
     "passport": "^0.6.0",
     "passport-facebook": "^3.0.0",
